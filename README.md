@@ -1,3 +1,6 @@
+
+# --- LLM
+
 !pip install -q -U transformers peft accelerate optimum bitsandbytes
 !pip install -q -U huggingface_hub
 !huggingface-cli login
@@ -60,3 +63,33 @@ Das Wetter in Düsseldorf wird heute schön und sonnig!
 ENDINPUT
 BEGININSTRUCTION Wie wird das Wetter heute in Düsseldorf? ENDINSTRUCTION"""
 ask_model(retrieval_question, system=retrieval_system)
+
+# --- Q/A:
+
+## Tutorial: Build Your First Question Answering System
+https://haystack.deepset.ai/tutorials/01_basic_qa_pipeline
+### Q&A Model:
+https://huggingface.co/deepset/roberta-base-squad2
+
+from transformers import AutoModelForQuestionAnswering, AutoTokenizer, pipeline
+
+model_name = "deepset/roberta-base-squad2"
+# model_name = "timpal0l/mdeberta-v3-base-squad2"
+
+# a) Get predictions
+nlp = pipeline('question-answering', model=model_name, tokenizer=model_name)
+
+QA_input = {
+    'question': 'Was ist Wikipedia?',
+    'context': 'Wikipedia ist ein Projekt zum Aufbau einer Enzyklopädie aus freien Inhalten, zu denen du sehr gern beitragen kannst. Seit März 2001 sind 2.874.691 Artikel in deutscher Sprache entstanden.'
+}
+res = nlp(QA_input)
+
+# b) Load model & tokenizer
+model = AutoModelForQuestionAnswering.from_pretrained(model_name)
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+
+res
+
+
+
