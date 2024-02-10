@@ -140,3 +140,65 @@ results = collection.query(
 )
 
 results
+
+# --- ChromaDB // from .txt
+
+# https://www.datacamp.com/tutorial/chromadb-tutorial-step-by-step-guide
+
+import chromadb
+import os
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.embeddings import HuggingFaceEmbeddings
+
+# Initialize text splitter and embeddings
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+# embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-large-en-v1.5")
+
+chroma_client = chromadb.Client()
+# chroma_client.reset()
+
+collection_name = "my_collection"
+chroma_client.delete_collection(collection_name)
+collection = chroma_client.create_collection(name=collection_name)
+
+def read_text(file_path):
+    with open(file_path, encoding="utf-8") as f:
+        return f.read()
+
+print(read_text('docs/example.txt'))
+
+# Process each TXT in the ./input directory
+for filename in os.listdir('./docs'):
+    if filename.endswith('.txt'):
+        text = read_text(os.path.join('./docs', filename))
+
+        # Split text into chunks
+        chunks = text_splitter.split_text(text)
+
+        # Convert chunks to vector representations and store in Chroma DB
+        documents_list = []
+        # embeddings_list = []
+        ids_list = []
+
+        for i, chunk in enumerate(chunks):
+            # vector = embeddings.embed_query(chunk)
+
+            documents_list.append(chunk)
+            # embeddings_list.append(vector)
+            ids_list.append(f"{filename}_{i}")
+
+
+        collection.add(
+            # embeddings=embeddings_list,
+            documents=documents_list,
+            ids=ids_list
+        )
+
+results = collection.query(
+    # query_texts=["How old is Alexandra Thompson?"],
+    # query_texts=["Where did Alexandra study?"],
+    query_texts=["Was mag meine Katze?"],
+    n_results=1
+)
+
+results['documents'][0][0]
